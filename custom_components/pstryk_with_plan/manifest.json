@@ -1,0 +1,17 @@
+{
+  "domain": "pstryk_with_plan",
+  "name": "Pstryk with plan",
+  "codeowners": [
+    "@jmmarek"
+  ],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://github.com/jmmarek/ha-pstryk-with-plan",
+  "homekit": {},
+  "integration_type": "service",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "ssdp": [],
+  "version": "0.2",
+  "zeroconf": []
+}
