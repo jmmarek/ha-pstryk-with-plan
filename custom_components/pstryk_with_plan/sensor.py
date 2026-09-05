@@ -52,22 +52,19 @@ PRICE_SENSORS = [
         window_id=0,
         key="cheapest_hour_price",
         name="Cheapest price",
-        device_class=SensorDeviceClass.MONETARY,
-        native_unit_of_measurement="PLN",
+        native_unit_of_measurement="PLN/kWh",
     ),
     DescriptionWithWindowSize(
         window_id=1,
         key="cheapest_2_hours_price",
         name="Cheapest 2 hours price",
-        device_class=SensorDeviceClass.MONETARY,
-        native_unit_of_measurement="PLN",
+        native_unit_of_measurement="PLN/kWh",
     ),
     DescriptionWithWindowSize(
         window_id=2,
         key="cheapest_3_hours_price",
         name="Cheapest 3 hours price",
-        device_class=SensorDeviceClass.MONETARY,
-        native_unit_of_measurement="PLN",
+        native_unit_of_measurement="PLN/kWh",
     ),
 ]
 
@@ -77,24 +74,21 @@ CURRENT_PRICE_SENSORS = [
         hour_id=0,
         key="current_hour_price",
         name="Current hour price",
-        device_class=SensorDeviceClass.MONETARY,
-        native_unit_of_measurement="PLN",
+        native_unit_of_measurement="PLN/kWh",
     ),
     DescriptionWithHour(
         window_id=1,
         hour_id=1,
         key="current_hour_2_hours_mean_price",
         name="Current hour 2 hours mean price",
-        device_class=SensorDeviceClass.MONETARY,
-        native_unit_of_measurement="PLN",
+        native_unit_of_measurement="PLN/kWh",
     ),
     DescriptionWithHour(
         window_id=0,
         hour_id=1,
         key="next_hour_price",
         name="Next hour price",
-        device_class=SensorDeviceClass.MONETARY,
-        native_unit_of_measurement="PLN",
+        native_unit_of_measurement="PLN/kWh",
     ),
 ]
 
@@ -103,22 +97,16 @@ CURRENT_WINDOWS = [
         window_id=0,
         key="is_cheapest_hour",
         name="Is cheapest hour now",
-        device_class=SensorDeviceClass.MONETARY,
-        native_unit_of_measurement="PLN",
     ),
     DescriptionWithWindowSize(
         window_id=1,
         key="is_in_cheapest_2_hours_window",
         name="Is in cheapest 2 hours now",
-        device_class=SensorDeviceClass.MONETARY,
-        native_unit_of_measurement="PLN",
     ),
     DescriptionWithWindowSize(
         window_id=2,
         key="is_in_cheapest_3_hours_window",
         name="Is in cheapest 3 hours now",
-        device_class=SensorDeviceClass.MONETARY,
-        native_unit_of_measurement="PLN",
     ),
 ]
 
