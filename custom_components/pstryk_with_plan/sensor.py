@@ -149,13 +149,16 @@ class PstrykWithPlanSensorEntity(CoordinatorEntity, SensorEntity):
         self.entity_description = description
         self.now = now
 
+def index_for_hour_at(date, begin_hour):
+        time_difference = date - begin_hour
+        return int((time_difference.total_seconds() / 3600))
+
 
 class CheapestWindowHourSensor(PstrykWithPlanSensorEntity):
     @property
     def native_value(self):
         begin_hour = self.coordinator.data["begin_hour"]
-        time_difference = self.now(timezone.utc) - begin_hour
-        now_hour_from_begining = int((time_difference.total_seconds() / 3600))
+        now_hour_from_begining = index_for_hour_at(self.now(timezone.utc), begin_hour)
 
         data_hour_prices = self.coordinator.data["window_prices"][
             self.entity_description.window_id
@@ -188,8 +191,7 @@ class CheapestWindowPriceSensor(PstrykWithPlanSensorEntity):
     @property
     def native_value(self):
         begin_hour = self.coordinator.data["begin_hour"]
-        time_difference = self.now(timezone.utc) - begin_hour
-        now_hour_from_begining = int((time_difference.total_seconds() / 3600))
+        now_hour_from_begining = index_for_hour_at(self.now(timezone.utc), begin_hour)
 
         data_hour_prices = self.coordinator.data["window_prices"][
             self.entity_description.window_id
