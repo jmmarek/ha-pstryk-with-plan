@@ -77,7 +77,7 @@ class PstrykCoordinator(DataUpdateCoordinator):
             return result
 
     async def _async_update_data(self):
-        _LOGGER.warning("Try updating data")
+        _LOGGER.debug("Try updating data")
 
         for attempt in range(0, MAX_RETRIES):
             try:
