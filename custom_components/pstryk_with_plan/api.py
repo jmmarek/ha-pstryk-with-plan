@@ -37,7 +37,7 @@ class PstrykApi:
                 raise ConfigEntryAuthFailed
 
             if response.status != 200:
-                raise HomeAssistantError("Cannot connect")
+                raise HomeAssistantError(f"API returned HTTP status {response.status}")
 
             return await response.json(), warsaw_midnight
 
