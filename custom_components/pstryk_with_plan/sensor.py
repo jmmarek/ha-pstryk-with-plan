@@ -8,6 +8,7 @@ from homeassistant.components.sensor import (
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.const import UnitOfTime
 from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
 from dataclasses import dataclass
 from homeassistant.helpers.device_registry import DeviceInfo
 
@@ -18,12 +19,14 @@ _LOGGER = logging.getLogger(__name__)
 @dataclass
 class DescriptionWithWindowSize(SensorEntityDescription):
     window_id: int = 0
+    before_hour: int = -1
 
 
 @dataclass
 class DescriptionWithHour(SensorEntityDescription):
     hour_id: int = 0
     window_id: int = 0
+    before_hour: int = -1
 
 
 TIME_SENSORS = [
@@ -45,6 +48,13 @@ TIME_SENSORS = [
         name="Cheapest 3 hours",
         device_class=SensorDeviceClass.TIMESTAMP,
     ),
+    DescriptionWithWindowSize(
+        key="cheapest_hour_before_morning",
+        window_id=0,
+        name="Cheapest hour before morning",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        before_hour=7,
+    ),
 ]
 
 PRICE_SENSORS = [
@@ -65,6 +75,13 @@ PRICE_SENSORS = [
         key="cheapest_3_hours_price",
         name="Cheapest 3 hours price",
         native_unit_of_measurement="PLN/kWh",
+    ),
+    DescriptionWithWindowSize(
+        window_id=0,
+        key="cheapest_hour_price_before_morning",
+        name="Cheapest price before morning",
+        native_unit_of_measurement="PLN/kWh",
+        before_hour=7,
     ),
 ]
 
@@ -154,6 +171,16 @@ def index_for_hour_at(date, begin_hour):
         return int((time_difference.total_seconds() / 3600))
 
 
+def get_closest_hour(to_date, hour: int):
+    to_date_cest = to_date.astimezone(ZoneInfo("Europe/Warsaw"))
+    closest_hour = to_date_cest.replace(hour=hour)
+
+    if closest_hour <= to_date:
+        closest_hour += timedelta(days=1)
+
+    return closest_hour
+
+
 class CheapestWindowHourSensor(PstrykWithPlanSensorEntity):
     @property
     def native_value(self):
@@ -164,7 +191,12 @@ class CheapestWindowHourSensor(PstrykWithPlanSensorEntity):
             self.entity_description.window_id
         ]
 
-        data_hour_prices_futures = data_hour_prices[now_hour_from_begining:]
+        closest_hour_from_begining = -1
+        if self.entity_description.before_hour != -1:
+            closest_hour = get_closest_hour(self.now(timezone.utc), self.entity_description.before_hour)
+            closest_hour_from_begining = index_for_hour_at(closest_hour, begin_hour)
+
+        data_hour_prices_futures = data_hour_prices[now_hour_from_begining:closest_hour_from_begining]
         min_value = min(data_hour_prices_futures)
         hour = data_hour_prices_futures.index(min_value) + now_hour_from_begining
         return begin_hour + timedelta(hours=hour)
@@ -193,11 +225,16 @@ class CheapestWindowPriceSensor(PstrykWithPlanSensorEntity):
         begin_hour = self.coordinator.data["begin_hour"]
         now_hour_from_begining = index_for_hour_at(self.now(timezone.utc), begin_hour)
 
+        closest_hour_from_begining = -1
+        if self.entity_description.before_hour != -1:
+            closest_hour = get_closest_hour(self.now(timezone.utc), self.entity_description.before_hour)
+            closest_hour_from_begining = index_for_hour_at(closest_hour, begin_hour)
+
         data_hour_prices = self.coordinator.data["window_prices"][
             self.entity_description.window_id
         ]
 
-        return min(data_hour_prices[now_hour_from_begining:])
+        return min(data_hour_prices[now_hour_from_begining:closest_hour_from_begining])
 
 
 class CurrentHourPriceSensor(PstrykWithPlanSensorEntity):

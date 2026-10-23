@@ -16,6 +16,7 @@ async def test_sensor_cheapest_hour(hass):
 
     entity_description = Mock()
     entity_description.window_id = 0
+    entity_description.before_hour = -1
 
     coordinator.data = {
         "begin_hour": datetime(2026, 7, 24, 1, 0, tzinfo=timezone.utc),
@@ -28,11 +29,48 @@ async def test_sensor_cheapest_hour(hass):
     assert sensor.native_value == datetime(2026, 7, 24, 1 + 2, 0, tzinfo=timezone.utc)
 
 
+async def test_sensor_cheapest_hour_before_3th_hour(hass):
+    coordinator = Mock()
+
+    entity_description = Mock()
+    entity_description.window_id = 0
+    entity_description.before_hour = 5  # cest time
+
+    coordinator.data = {
+        "begin_hour": datetime(2026, 7, 24, 1, 0, tzinfo=timezone.utc),  # 3 h cest
+        "window_prices": [[7, 6, 3, 4, 5, 1, 7, 4, 9]],
+    }
+
+    magic_now = MagicMock(return_value=datetime(2026, 7, 24, 1, 0, tzinfo=timezone.utc))
+    sensor = CheapestWindowHourSensor(coordinator, entity_description, now=magic_now)
+
+    assert sensor.native_value == datetime(2026, 7, 24, 1 + 1, 0, tzinfo=timezone.utc)
+
+
+async def test_sensor_cheapest_price_before_3th_hour(hass):
+    coordinator = Mock()
+
+    entity_description = Mock()
+    entity_description.window_id = 0
+    entity_description.before_hour = 5  # cest time
+
+    coordinator.data = {
+        "begin_hour": datetime(2026, 7, 24, 1, 0, tzinfo=timezone.utc),  # 3 h cest
+        "window_prices": [[7, 6, 3, 4, 5, 1, 7, 4, 9]],
+    }
+
+    magic_now = MagicMock(return_value=datetime(2026, 7, 24, 1, 0, tzinfo=timezone.utc))
+    sensor = CheapestWindowPriceSensor(coordinator, entity_description, now=magic_now)
+
+    assert sensor.native_value == 6
+
+
 async def test_sensor_cheapest_hour_after_time(hass):
     coordinator = Mock()
 
     entity_description = Mock()
     entity_description.window_id = 0
+    entity_description.before_hour = -1
 
     coordinator.data = {
         "begin_hour": datetime(2026, 7, 24, 1, 0, tzinfo=timezone.utc),
@@ -52,6 +90,7 @@ async def test_sensor_cheapest_price(hass):
 
     entity_description = Mock()
     entity_description.window_id = 0
+    entity_description.before_hour = -1
 
     coordinator.data = {
         "begin_hour": datetime(2026, 7, 24, 1, 0, tzinfo=timezone.utc),
@@ -71,6 +110,7 @@ async def test_sensor_cheapest_price_after_time(hass):
 
     entity_description = Mock()
     entity_description.window_id = 0
+    entity_description.before_hour = -1
 
     coordinator.data = {
         "begin_hour": datetime(2026, 7, 24, 1, 0, tzinfo=timezone.utc),
