@@ -11,6 +11,9 @@ from .api import PstrykApi
 
 _LOGGER = logging.getLogger(__name__)
 
+MAX_RETRIES = 3
+RETRY_DELAY = 5
+
 
 def get_sum_of_n(n, hour_prices_slice):
     sum = 0
@@ -52,31 +55,41 @@ class PstrykCoordinator(DataUpdateCoordinator):
             second=0,
         )
 
+    async def _update_data(self):
+        async with asyncio.timeout(120):
+            raw_data, start_time = await self.api.async_get_data()
+            hour_prices = [
+                frame["metrics"]["pricing"]["full_price"]
+                for frame in raw_data["frames"]
+                if frame["metrics"]["pricing"]["full_price"] is not None
+            ]
+            average_prices_windows = [hour_prices]
+            for window_len in range(2, 4):
+                average_prices_windows.append(
+                    get_n_hour_window(window_len, hour_prices)
+                )
+
+            result = {
+                "begin_hour": start_time,
+                "window_prices": average_prices_windows,
+            }
+
+            return result
+
     async def _async_update_data(self):
         _LOGGER.warning("Try updating data")
-        try:
-            async with asyncio.timeout(120):
-                _LOGGER.debug("waited... now return")
-                raw_data, start_time = await self.api.async_get_data()
-                hour_prices = [
-                    frame["metrics"]["pricing"]["full_price"]
-                    for frame in raw_data["frames"]
-                    if frame["metrics"]["pricing"]["full_price"] is not None
-                ]
-                average_prices_windows = [hour_prices]
-                for window_len in range(2, 4):
-                    average_prices_windows.append(
-                        get_n_hour_window(window_len, hour_prices)
-                    )
 
-                result = {
-                    "begin_hour": start_time,
-                    "window_prices": average_prices_windows,
-                }
-
-                return result
-        except ConfigEntryAuthFailed as err:
-            raise
+        for attempt in range(0, MAX_RETRIES):
+            try:
+                return await self._update_data()
+            except ConfigEntryAuthFailed as err:
+                raise
+            except (asyncio.TimeoutError, aiohttp.ClientError):
+                if attempt < MAX_RETRIES:
+                    _LOGGER.warning("Retry")
+                    await asyncio.sleep(RETRY_DELAY)
+                    continue
+            break
 
     @callback
     def _hour_changed(self, now):
