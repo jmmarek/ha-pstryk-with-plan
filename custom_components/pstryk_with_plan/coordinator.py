@@ -40,7 +40,7 @@ class PstrykCoordinator(DataUpdateCoordinator):
         self._remove_api_timer = async_track_time_change(
             hass,
             self._api_update,
-            hour=[0, 6, 12, 14, 18],
+            hour=[13],
             minute=0,
             second=0,
         )
