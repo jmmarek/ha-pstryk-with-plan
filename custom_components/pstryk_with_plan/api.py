@@ -39,7 +39,7 @@ class PstrykApi:
             if response.status != 200:
                 raise HomeAssistantError(f"API returned HTTP status {response.status}")
 
-            return await response.json(), warsaw_midnight
+            return await response.json(), utc_midnight
 
     async def async_validate(self) -> dict:
         return self.async_get_data()
