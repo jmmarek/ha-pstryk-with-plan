@@ -5,7 +5,9 @@ Improvements/bugfixes will came soon as I'm start using this now.
 
 # Sensors
 
-For now only sensor with best price windows are available.
+- sensors with cheapest price/cheapest mean of 2,3 window price and its timestamps.
+- sensor of cheapest price before morning (7 am cest)
+- boolean sensor - is in cheapest window
 
 ![Pstryk with Plan](screenshots/sensors.png)
 
