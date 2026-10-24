@@ -59,7 +59,7 @@ class PstrykCoordinator(DataUpdateCoordinator):
         async with asyncio.timeout(120):
             raw_data, start_time = await self.api.async_get_data()
             hour_prices = [
-                frame["metrics"]["pricing"]["full_price"]
+                round(frame["metrics"]["pricing"]["full_price"], 2)
                 for frame in raw_data["frames"]
                 if frame["metrics"]["pricing"]["full_price"] is not None
             ]
